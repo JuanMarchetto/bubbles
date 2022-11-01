@@ -12,9 +12,9 @@ describe("bubbles", () => {
   const payer = (program.provider as anchor.AnchorProvider).wallet;
   const player1 = new PublicKey("EjPpXXDykPawauyZHsBMtxGwG7K4iFmxdvB6ockM56ZN")
   const player2 = new PublicKey("CUtKCTar8gb5VYCDWbX5yFMVrhbnod9aCNf4cfhD2qPK")
+  const game = anchor.web3.Keypair.generate();
 
   it("Is initialized!", async () => {
-    const game = anchor.web3.Keypair.generate();
 
     const tx = await program.methods.createGame(
       [player1, player2],
@@ -27,6 +27,22 @@ describe("bubbles", () => {
       systemProgram: web3.SystemProgram.programId,
     })
     .signers([game])
+    .rpc();
+  
+    const gameAccount = await program.account.game.fetch(game.publicKey);
+  	console.log(gameAccount);
+  });
+
+  it("can move", async () => {
+
+    const tx = await program.methods.applyMove(
+      0,
+      1
+    ).accounts({
+      game: game.publicKey,
+      payer: payer.publicKey,
+      systemProgram: web3.SystemProgram.programId,
+    })
     .rpc();
   
     const gameAccount = await program.account.game.fetch(game.publicKey);
