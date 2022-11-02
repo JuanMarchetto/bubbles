@@ -37,31 +37,52 @@ pub mod bubbles {
         let game = &mut ctx.accounts.game;
         let items_by_line = game.items_by_line;
 
-        game.board[destination as usize].amount = game.board[destination as usize]
-            .amount
-            .checked_add(1)
-            .unwrap();
-        let turn = game.turn.checked_add(1).unwrap();
-        for i in 0..(origin / game.items_by_line) {
-            game.board[origin as usize - (i * items_by_line) as usize].amount = game.board
-                [origin as usize - ((i - 1) * items_by_line) as usize]
-                .amount
-                .checked_add(1)
-                .unwrap();
+        match (origin, destination) {
+            (origin, destination)
+                if (origin == destination - 1
+                    || origin == destination + 1
+                    || origin == destination - items_by_line
+                    || origin == destination + items_by_line)
+                    && game.board[origin as usize].amount == game.board[origin as usize].amount
+                    &&
+                    //TODO: recheck this condition in term off equality in relationship with the posible advantadge in terms of initial bubbles given the remainder of the players.len() % (items_by_line * lines)
+                    *ctx.accounts.payer.to_account_info().key == game.players[game.turn as usize % game.players.len()]
+                    =>
+            {
+                if game.board[origin as usize].player == game.board[origin as usize].player {
+                    game.board[destination as usize].amount = game.board[destination as usize]
+                        .amount
+                        .checked_add(1)
+                        .unwrap();
+                    let turn = game.turn.checked_add(1).unwrap();
+                    for i in 0..(origin / game.items_by_line) {
+                        game.board[origin as usize - (i * items_by_line) as usize].amount =
+                            game.board[origin as usize - ((i - 1) * items_by_line) as usize]
+                                .amount
+                                .checked_add(1)
+                                .unwrap();
+                    }
+                    game.board[(origin % items_by_line) as usize] = Bubble {
+                        player: turn
+                            .checked_add(game.board.len().try_into().unwrap())
+                            .unwrap() as u8
+                            % game.players.len() as u8,
+                        amount: 1,
+                    };
+
+                    game.board = game.board.to_vec();
+                    game.turn = turn;
+                }else{
+                    let previous_value = game.board[destination as usize].player;
+                    game.board[destination as usize].player = game.board[origin as usize].player;
+                    game.board[origin as usize].player = previous_value;
+                }
+
+                game.updated = Clock::get()?.unix_timestamp;
+                Ok(())
+            }
+            _ => Err(ErrorCode::IllegalMove.into()),
         }
-        game.board[(origin % items_by_line) as usize] = Bubble {
-            player: turn
-                .checked_add(game.board.len().try_into().unwrap())
-                .unwrap() as u8
-                % game.players.len() as u8,
-            amount: 1,
-        };
-
-        game.board = game.board.to_vec();
-        game.turn = turn;
-        game.updated = Clock::get()?.unix_timestamp;
-
-        Ok(())
     }
 }
 
@@ -102,4 +123,10 @@ pub struct Game {
 pub struct Bubble {
     pub player: u8,
     pub amount: u8,
+}
+
+#[error_code]
+pub enum ErrorCode {
+    #[msg("The provided move is not alloved.")]
+    IllegalMove,
 }
