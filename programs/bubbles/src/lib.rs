@@ -4,6 +4,8 @@ declare_id!("5hH748CgCFrbuJ19GtdgaB9M1pV5VuUuTicTyz8Jhr3d");
 
 #[program]
 pub mod bubbles {
+    use anchor_lang::solana_program::{program::invoke, system_instruction};
+
     use super::*;
 
     pub fn create_game(
@@ -47,6 +49,7 @@ pub mod bubbles {
                     &&
                     //TODO: recheck this condition in term off equality in relationship with the posible advantadge in terms of initial bubbles given the remainder of the players.len() % (items_by_line * lines)
                     *ctx.accounts.payer.to_account_info().key == game.players[game.turn as usize % game.players.len()]
+                    && !game.board.iter().any(|bubble| bubble.amount == game.target)
                     =>
             {
                 if game.board[origin as usize].player == game.board[origin as usize].player {
@@ -84,6 +87,34 @@ pub mod bubbles {
             _ => Err(ErrorCode::IllegalMove.into()),
         }
     }
+
+    pub fn restart (
+        ctx: Context<Restart>,
+    ) -> Result<()> {
+        let game = &mut ctx.accounts.game;
+
+        let mut board: Vec<Bubble> = [].to_vec();
+        for i in 0..game.board.len() as u8 {
+            board.push(Bubble {
+                player: i % game.players.len() as u8,
+                amount: 1,
+            })
+        }
+        game.board = board;
+        msg!("{}",ctx.accounts.payer.key);
+        Ok(invoke(
+            &system_instruction::transfer(
+                ctx.accounts.payer.key,
+                ctx.accounts.payer.key,
+                100000
+            ),
+            &[
+                ctx.accounts.payer.to_account_info().clone(),
+                ctx.accounts.payer.to_account_info().clone(),
+            ],
+        )?)
+        
+    }
 }
 
 #[derive(Accounts)]
@@ -91,7 +122,7 @@ pub struct CreateGame<'info> {
     #[account(
         init,
         payer = payer,
-        space = 1000,
+        space = 300,
     )]
     pub game: Account<'info, Game>,
     #[account(mut)]
@@ -108,6 +139,15 @@ pub struct ApplyMove<'info> {
     pub system_program: Program<'info, System>,
 }
 
+
+#[derive(Accounts)]
+pub struct Restart<'info> {
+    #[account(mut)]
+    pub game: Account<'info, Game>,
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
 #[account]
 pub struct Game {
     pub mode: String,

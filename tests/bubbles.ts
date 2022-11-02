@@ -30,6 +30,7 @@ describe("bubbles", () => {
 
     const gameAccount = await program.account.game.fetch(game.publicKey);
     console.log(gameAccount);
+    console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom&customUrl=http://localhost:8899`);
   });
 
   it("can move", async () => {
@@ -43,6 +44,21 @@ describe("bubbles", () => {
       systemProgram: web3.SystemProgram.programId,
     })
       .rpc();
+
+    const gameAccount = await program.account.game.fetch(game.publicKey);
+    console.log(gameAccount);
+  });
+
+  it("can restart", async () => {
+
+    const tx = await program.methods.restart(
+    ).accounts({
+      game: game.publicKey,
+      payer: payer.publicKey,
+      systemProgram: web3.SystemProgram.programId,
+    })
+      .rpc();
+      console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom&customUrl=http://localhost:8899`);
 
     const gameAccount = await program.account.game.fetch(game.publicKey);
     console.log(gameAccount);
