@@ -10,6 +10,7 @@ pub mod bubbles {
 
     pub fn create_game(
         ctx: Context<CreateGame>,
+        timestamp: String,
         players: Vec<Pubkey>,
         items_by_line: u8,
         lines: u8,
@@ -19,7 +20,7 @@ pub mod bubbles {
         for i in 0..(items_by_line * lines) {
             board.push(Bubble {
                 player: i % players.len() as u8,
-                amount: 1,
+                amount: 0,
             })
         }
 
@@ -97,7 +98,7 @@ pub mod bubbles {
         for i in 0..game.board.len() as u8 {
             board.push(Bubble {
                 player: i % game.players.len() as u8,
-                amount: 1,
+                amount: 0,
             })
         }
         game.board = board;
@@ -118,11 +119,14 @@ pub mod bubbles {
 }
 
 #[derive(Accounts)]
+#[instruction(timestamp: String)]
 pub struct CreateGame<'info> {
     #[account(
         init,
         payer = payer,
         space = 300,
+        seeds = [b"game".as_ref(), &payer.key().to_bytes(), timestamp.as_ref()],
+        bump
     )]
     pub game: Account<'info, Game>,
     #[account(mut)]

@@ -12,23 +12,28 @@ describe("bubbles", () => {
   const payer = (program.provider as anchor.AnchorProvider).wallet;
   const player1 = new PublicKey("GgZqidq5shJkSZmejx92RTMz2Ti82VxXRdxtKjFKLntC")
   const player2 = new PublicKey("GgZqidq5shJkSZmejx92RTMz2Ti82VxXRdxtKjFKLntC")
-  const game = anchor.web3.Keypair.generate();
+  const timestamp = `${Date.now()}`
+
+  const [gamePublicKey] = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("game"), payer.publicKey.toBuffer(), Buffer.from(timestamp),],
+    program.programId,
+  )
 
   it("Is initialized!", async () => {
     const tx = await program.methods.createGame(
+      timestamp,
       [player1, player2],
       5,
       10,
       5
     ).accounts({
-      game: game.publicKey,
+      game: gamePublicKey,
       payer: payer.publicKey,
       systemProgram: web3.SystemProgram.programId,
     })
-      .signers([game])
       .rpc();
 
-    const gameAccount = await program.account.game.fetch(game.publicKey);
+    const gameAccount = await program.account.game.fetch(gamePublicKey);
     console.log(gameAccount);
     console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom&customUrl=http://localhost:8899`);
   });
@@ -39,13 +44,13 @@ describe("bubbles", () => {
       0,
       1
     ).accounts({
-      game: game.publicKey,
+      game: gamePublicKey,
       payer: payer.publicKey,
       systemProgram: web3.SystemProgram.programId,
     })
       .rpc();
 
-    const gameAccount = await program.account.game.fetch(game.publicKey);
+    const gameAccount = await program.account.game.fetch(gamePublicKey);
     console.log(gameAccount);
   });
 
@@ -53,14 +58,14 @@ describe("bubbles", () => {
 
     const tx = await program.methods.restart(
     ).accounts({
-      game: game.publicKey,
+      game: gamePublicKey,
       payer: payer.publicKey,
       systemProgram: web3.SystemProgram.programId,
     })
       .rpc();
       console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom&customUrl=http://localhost:8899`);
 
-    const gameAccount = await program.account.game.fetch(game.publicKey);
+    const gameAccount = await program.account.game.fetch(gamePublicKey);
     console.log(gameAccount);
   });
 });
