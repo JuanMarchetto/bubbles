@@ -1,5 +1,6 @@
 [features]
-seeds = false
+seeds = true
+
 skip-lint = false
 [programs.localnet]
 bubbles = "5hH748CgCFrbuJ19GtdgaB9M1pV5VuUuTicTyz8Jhr3d"
