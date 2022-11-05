@@ -1,8 +1,10 @@
 import { FC, useEffect, useState } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useAnchorWallet } from "@solana/wallet-adapter-react";
-
+import { PublicKey } from "@solana/web3.js"
+import * as web3 from "@solana/web3.js"
 import * as anchor from "@project-serum/anchor";
+import { useConnection } from "@solana/wallet-adapter-react"
 
 import { useProgram } from "./useProgram";
 
@@ -10,9 +12,43 @@ const endpoint = "http://localhost:8899";
 const connection = new anchor.web3.Connection(endpoint);
 
 export const CreateGame: FC = ({ }) => {
-  const wallet: any = useAnchorWallet();
-
+  const { connection } = useConnection()
+  const wallet = useAnchorWallet();
   const { program } = useProgram({ connection, wallet });
+
+  const handleClick = ()=>{
+    if (program){
+    (async () =>{
+
+
+  const player1 = new PublicKey("GgZqidq5shJkSZmejx92RTMz2Ti82VxXRdxtKjFKLntC")
+  const player2 = new PublicKey("GgZqidq5shJkSZmejx92RTMz2Ti82VxXRdxtKjFKLntC")
+  const timestamp = `${Date.now()}`
+  
+    const [gamePublicKey] = web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("game"), wallet?.publicKey.toBuffer() ?? Buffer.from("") , Buffer.from(timestamp),],
+      program.programId,
+    )
+  
+  
+      const tx = await program.methods.createGame(
+        timestamp,
+        [player1, player2],
+        5,
+        10,
+        5
+      ).accounts({
+        game: gamePublicKey,
+        payer: wallet?.publicKey,
+        systemProgram: web3.SystemProgram.programId,
+      })
+        .rpc();
+        console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom&customUrl=http://localhost:8899`);
+
+    })()
+  }
+ 
+  }
   return (
     <>
       <nav className="flex justify-between items-center px-16 py-4 bg-black">
@@ -21,7 +57,7 @@ export const CreateGame: FC = ({ }) => {
       {!wallet ? (
         <p> no wallet </p>
       ) : (
-        <p> wallet </p>
+        <button type="button" onClick={handleClick}> wallet </button>
       )}
     </>
   );

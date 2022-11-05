@@ -9,8 +9,7 @@
     "lint": "next lint --fix"
   },
   "dependencies": {
-    "@project-serum/anchor": "^0.19.1-beta.1",
-    "@solana/spl-token": "^0.1.8",
+    "@project-serum/anchor": "^0.25.0",
     "@solana/wallet-adapter-base": "^0.7.0",
     "@solana/wallet-adapter-phantom": "^0.7.0",
     "@solana/wallet-adapter-react": "^0.13.1",

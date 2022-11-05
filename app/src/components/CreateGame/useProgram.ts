@@ -4,8 +4,9 @@ import * as anchor from "@project-serum/anchor";
 
 import idl from "../../../../target/idl/bubbles.json"
 
-const PROGRAM = "5hH748CgCFrbuJ19GtdgaB9M1pV5VuUuTicTyz8Jhr3d";
-const programID = new PublicKey(PROGRAM);
+
+const MATE_PROGRAM = idl.metadata.address;
+const programID = new PublicKey(MATE_PROGRAM);
 
 export interface Wallet {
   signTransaction(
@@ -19,7 +20,7 @@ export interface Wallet {
 
 type ProgramProps = {
   connection: Connection;
-  wallet: Wallet;
+  wallet?: Wallet;
 };
 
 export const useProgram = ({ connection, wallet }: ProgramProps) => {
@@ -30,7 +31,8 @@ export const useProgram = ({ connection, wallet }: ProgramProps) => {
   }, [connection, wallet]);
 
   const updateProgram = () => {
-    const provider = new anchor.Provider(connection, wallet, {
+    if (!wallet) return
+    const provider = new anchor.AnchorProvider(connection, wallet, {
       preflightCommitment: "recent",
       commitment: "processed",
     });
@@ -42,3 +44,8 @@ export const useProgram = ({ connection, wallet }: ProgramProps) => {
     program,
   };
 };
+
+
+
+
+
