@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import * as anchor from "@project-serum/anchor";
 
-import idl from "../../../../target/idl/bubbles.json"
+import idl from "../../../target/idl/bubbles.json"
 
 
 const MATE_PROGRAM = idl.metadata.address;

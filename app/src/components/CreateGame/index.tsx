@@ -6,7 +6,7 @@ import * as web3 from "@solana/web3.js"
 import * as anchor from "@project-serum/anchor";
 import { useConnection } from "@solana/wallet-adapter-react"
 
-import { useProgram } from "./useProgram";
+import { useProgram } from "../../utils/useProgram";
 
 const endpoint = "http://localhost:8899";
 const connection = new anchor.web3.Connection(endpoint);
@@ -26,7 +26,7 @@ export const CreateGame: FC = ({ }) => {
   const timestamp = `${Date.now()}`
   
     const [gamePublicKey] = web3.PublicKey.findProgramAddressSync(
-      [Buffer.from("game"), wallet?.publicKey.toBuffer() ?? Buffer.from("") , Buffer.from(timestamp),],
+      [Buffer.from("game"), wallet?.publicKey.toBuffer() ?? Buffer.from(""),],
       program.programId,
     )
   
